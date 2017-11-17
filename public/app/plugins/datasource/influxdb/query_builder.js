@@ -57,9 +57,9 @@ function (_) {
       }
     } else if (type === 'FIELDS') {
       if (!this.target.measurement.match('^/.*/')) {
-        return 'SHOW FIELD KEYS FROM "' + this.target.measurement + '"';
+        return 'SHOW FIELD KEYS FROM "' + this.target.policy + '"."' + this.target.measurement + '"';
       } else {
-        return 'SHOW FIELD KEYS FROM ' + this.target.measurement;
+        return 'SHOW FIELD KEYS FROM "' + this.target.policy + '".' + this.target.measurement;
       }
     } else if (type === 'RETENTION POLICIES') {
       query = 'SHOW RETENTION POLICIES on "' + this.database + '"';

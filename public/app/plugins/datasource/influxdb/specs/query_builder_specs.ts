@@ -83,15 +83,15 @@ describe('InfluxQueryBuilder', function() {
     });
 
     it('should build show field query', function() {
-      var builder = new InfluxQueryBuilder({measurement: 'cpu', tags: [{key: 'app', value: 'email'}]});
+      var builder = new InfluxQueryBuilder({measurement: 'cpu', tags: [{key: 'app', value: 'email'}], policy: 'test'});
       var query = builder.buildExploreQuery('FIELDS');
-      expect(query).to.be('SHOW FIELD KEYS FROM "cpu"');
+      expect(query).to.be('SHOW FIELD KEYS FROM "test"."cpu"');
     });
 
     it('should build show field query with regexp', function() {
-      var builder = new InfluxQueryBuilder({measurement: '/$var/', tags: [{key: 'app', value: 'email'}]});
+      var builder = new InfluxQueryBuilder({measurement: '/$var/', tags: [{key: 'app', value: 'email'}], policy: 'regexptest'});
       var query = builder.buildExploreQuery('FIELDS');
-      expect(query).to.be('SHOW FIELD KEYS FROM /$var/');
+      expect(query).to.be('SHOW FIELD KEYS FROM "regexptest"./$var/');
     });
 
     it('should build show retention policies query', function() {

@@ -11,6 +11,16 @@ var categories = {
   Aliasing: [],
   Fields: [],
 };
+var transformationsAllowingNesting = [
+  "cumulative_sum",
+  "derivative",
+  "difference",
+  "elapsed",
+  "moving_average",
+  "non_negative_derivative",
+  "holt_winters",
+  "holt_winters_with_fit"
+];
 
 function createPart(part): any {
   var def = index[part.type];
@@ -40,6 +50,7 @@ function fieldRenderer(part, innerExpr) {
 }
 
 function replaceAggregationAddStrategy(selectParts, partModel) {
+  var foundTransformation;
   // look for existing aggregation
   for (var i = 0; i < selectParts.length; i++) {
     var part = selectParts[i];
@@ -49,6 +60,22 @@ function replaceAggregationAddStrategy(selectParts, partModel) {
     }
     if (part.def.category === categories.Selectors) {
       selectParts[i] = partModel;
+      return;
+    }
+    if (part.def.category === categories.Transformations) {
+      foundTransformation = { part: part, index: i };
+    }
+  }
+
+  if (foundTransformation !== undefined) {
+    var allowsNesting = _.some(transformationsAllowingNesting, function(transformType: string) {
+      return transformType === foundTransformation.part.def.type;
+    });
+    if (!allowsNesting) {
+      var numberOfTransformations = _.filter(selectParts, function(part: any) {
+        return part.def.category === categories.Transformations;
+      });
+      selectParts.splice(foundTransformation.index, numberOfTransformations.length, partModel);
       return;
     }
   }
@@ -66,7 +93,15 @@ function addTransformationStrategy(selectParts, partModel) {
     }
   }
 
-  selectParts.splice(i, 0, partModel);
+  var nestingAllowed = _.some(transformationsAllowingNesting, function(transformType: string) {
+    return transformType === partModel.def.type;
+  });
+  if (nestingAllowed) {
+    selectParts.splice(i, 0, partModel);
+    return;
+  }
+
+  selectParts.splice(1, i - 1, partModel);
 }
 
 function addMathStrategy(selectParts, partModel) {
